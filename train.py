@@ -28,7 +28,7 @@ def main(args, configs):
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
-    group_size = 4  # Set this larger than 1 to enable sorting in Dataset
+    group_size = 1  # Set this larger than 1 to enable sorting in Dataset
     assert batch_size * group_size < len(dataset)
     loader = DataLoader(
         dataset,
@@ -77,6 +77,10 @@ def main(args, configs):
         for batchs in loader:
             for batch in batchs:
                 batch = to_device(batch, device)
+
+                # 디버깅용 출력 추가
+                print(f"Text length: {batch[2].shape[1]}, Mel length: {batch[5].max()}")
+                print(f"Pitch length: {batch[7].shape[1]}, Duration length: {batch[8].shape[1]}")
 
                 # Forward
                 output = model(*(batch[2:]))
@@ -183,8 +187,9 @@ if __name__ == "__main__":
         "-m", "--model_config", type=str, required=True, help="path to model.yaml"
     )
     parser.add_argument(
-        "-t", "--train_config", type=str, required=True, help="path to train.yaml"
+    "-t", "--train_config", type=str, required=True, help="path to train.yaml"
     )
+
     args = parser.parse_args()
 
     # Read Config

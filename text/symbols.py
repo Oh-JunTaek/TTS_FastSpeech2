@@ -11,6 +11,9 @@ _pad = "_"
 _punctuation = "!'(),.:;? "
 _special = "-"
 _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+_korean_letters = "ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣㅐㅒㅔㅖㅢㅟㅚㅘㅝㅞㅙㅢㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ"
+# 완성된 한글 (유니코드 범위: U+AC00 ~ U+D7A3)
+_korean_characters = [chr(i) for i in range(ord('가'), ord('힣')+1)]
 _silences = ["@sp", "@spn", "@sil"]
 
 # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
@@ -23,6 +26,8 @@ symbols = (
     + list(_special)
     + list(_punctuation)
     + list(_letters)
+    + list(_korean_letters)  # 한국어 자모 추가
+    + _korean_characters      # 완성된 한글 추가
     + _arpabet
     + _pinyin
     + _silences

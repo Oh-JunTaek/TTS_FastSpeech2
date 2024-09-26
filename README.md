@@ -5,6 +5,10 @@
   ```
   tts-env\Scripts\activate
   ```
+  2. mac
+  ```
+  source tts-env/bin/activate
+  ```
 * 요구사항 설치
   * 요구사항 설치 중 오류 - ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (pyworld)
     1. [Microsoft C++ Build Tools 다운로드 링크] (https://visualstudio.microsoft.com/ko/visual-cpp-build-tools/)
@@ -15,6 +19,9 @@
   ```
   python preprocess.py --dataset custom
   ```
+  ```
+  python preprocess.py config/custom.yaml
+  ```
 * 모델 학습
   1. 데이터셋의 수에 따라 학습 스텝수 조절
   2. 학습 중간에 체크포인트가 생성되며, 학습이 끝나면 결과 모델이 checkpoints/폴더에 저장됨
@@ -22,6 +29,10 @@
   ```
   python train.py --dataset custom --steps 500
   ```
+  ```
+  python train.py -p config/custom.yaml -m config/model.yaml -t config/train.yaml
+  ```
+  
 * 모델 추론
   1. 테스트 문장을 음성으로 생성
   2. 명령어

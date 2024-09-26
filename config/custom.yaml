@@ -1,17 +1,23 @@
+dataset: "custom"  # 데이터셋 이름을 'custom'으로 설정
+
 # 경로 설정
 path:
   raw_path: "dataset/wavs"       # 원본 음성 파일이 있는 경로
   preprocessed_path: "dataset/preprocessed"  # 전처리된 파일을 저장할 경로
-  mel_path: "dataset/mels"       # 멜 스펙트로그램 저장 경로
-  alignment_path: "dataset/alignments"  # 정렬 파일 저장 경로
-  pitch_path: "dataset/pitch"    # 피치 정보 저장 경로
-  energy_path: "dataset/energy"  # 에너지 정보 저장 경로
-  duration_path: "dataset/duration"  # 지속 시간 정보 저장 경로
+  mel_path: "dataset/preprocessed/mel"  # 멜 스펙트로그램 저장 경로
+  alignment_path: "dataset/preprocessed/alignments"  # 정렬 파일 저장 경로
+  pitch_path: "dataset/preprocessed/pitch"    # 피치 정보 저장 경로
+  energy_path: "dataset/preprocessed/energy"  # 에너지 정보 저장 경로
+  duration_path: "dataset/preprocessed/duration"  # 지속 시간 정보 저장 경로
+
 
 # 전처리 설정
 preprocessing:
-  val_size: 10  # 검증 데이터셋의 크기(퍼센트 단위, 10%)
-  text_cleaners: ["korean_cleaners"]  # 텍스트 클리너 설정
+  val_size: 10
+
+  # 텍스트 설정 추가
+  text:
+    text_cleaners: ["korean_cleaners"]  # 한국어 클리너 사용
 
   # 오디오 설정
   audio:

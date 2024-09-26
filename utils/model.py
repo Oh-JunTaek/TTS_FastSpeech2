@@ -17,7 +17,8 @@ def get_model(args, configs, device, train=False):
             train_config["path"]["ckpt_path"],
             "{}.pth.tar".format(args.restore_step),
         )
-        ckpt = torch.load(ckpt_path)
+        # CPU로 매핑해서 모델 로드
+        ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
         model.load_state_dict(ckpt["model"])
 
     if train:
@@ -60,9 +61,16 @@ def get_vocoder(config, device):
         config = hifigan.AttrDict(config)
         vocoder = hifigan.Generator(config)
         if speaker == "LJSpeech":
-            ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar")
+            # CPU로 매핑해서 HiFi-GAN vocoder 로드
+            ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar", map_location=torch.device('cpu'))
         elif speaker == "universal":
-            ckpt = torch.load("hifigan/generator_universal.pth.tar")
+            # CPU로 매핑해서 HiFi-GAN vocoder 로드
+            ckpt = torch.load("hifigan/generator_universal.pth.tar", map_location=torch.device('cpu'))
+
+        # GPU를 사용하는 코드 (추후 사용 시 주석 해제)
+        # ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar")
+        # ckpt = torch.load("hifigan/generator_universal.pth.tar")
+
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()
@@ -90,3 +98,4 @@ def vocoder_infer(mels, vocoder, model_config, preprocess_config, lengths=None):
             wavs[i] = wavs[i][: lengths[i]]
 
     return wavs
+

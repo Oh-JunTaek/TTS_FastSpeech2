@@ -35,30 +35,23 @@ class Dataset(Dataset):
         speaker_id = self.speaker_map[speaker]
         raw_text = self.raw_text[idx]
         phone = np.array(text_to_sequence(self.text[idx], self.cleaners))
-        mel_path = os.path.join(
-            self.preprocessed_path,
-            "mel",
-            "{}-mel-{}.npy".format(speaker, basename),
-        )
+        
+        mel_path = os.path.join(self.preprocessed_path, "mel", "{}.npy".format(basename))
         mel = np.load(mel_path)
-        pitch_path = os.path.join(
-            self.preprocessed_path,
-            "pitch",
-            "{}-pitch-{}.npy".format(speaker, basename),
-        )
+        
+        pitch_path = os.path.join(self.preprocessed_path, "pitch", "{}.npy".format(basename))
         pitch = np.load(pitch_path)
-        energy_path = os.path.join(
-            self.preprocessed_path,
-            "energy",
-            "{}-energy-{}.npy".format(speaker, basename),
-        )
+        
+        energy_path = os.path.join(self.preprocessed_path, "energy", "{}.npy".format(basename))
         energy = np.load(energy_path)
-        duration_path = os.path.join(
-            self.preprocessed_path,
-            "duration",
-            "{}-duration-{}.npy".format(speaker, basename),
-        )
+        
+        duration_path = os.path.join(self.preprocessed_path, "duration", "{}.npy".format(basename))
         duration = np.load(duration_path)
+
+        # 디버깅 출력 추가
+        print(f"Index: {idx}, Basename: {basename}")
+        print(f"Text (phones) length: {len(phone)}, Mel shape: {mel.shape}")
+        print(f"Pitch shape: {pitch.shape}, Energy shape: {energy.shape}, Duration shape: {duration.shape}")
 
         sample = {
             "id": basename,
@@ -72,6 +65,7 @@ class Dataset(Dataset):
         }
 
         return sample
+
 
     def process_meta(self, filename):
         with open(

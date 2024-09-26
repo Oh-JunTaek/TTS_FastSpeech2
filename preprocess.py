@@ -5,9 +5,9 @@ import torch
 import numpy as np
 from librosa import load
 from librosa.feature import melspectrogram
-
-import os
-import numpy as np
+import random  # 파일 분할을 위해 추가
+import json
+import pyworld as pw
 
 class Preprocessor:
     def __init__(self, config):
@@ -18,11 +18,17 @@ class Preprocessor:
         self.n_mel_channels = config["preprocessing"]["mel"]["n_mel_channels"]
         self.mel_fmin = config["preprocessing"]["mel"]["mel_fmin"]
         self.mel_fmax = config["preprocessing"]["mel"]["mel_fmax"]
+        self.val_size = config["preprocessing"]["val_size"]  # 검증 데이터 비율 추가
 
     def process_audio(self, wav_path):
         # Load audio file
         wav, _ = load(wav_path, sr=self.sampling_rate)
         print(f"Loaded {wav_path} for mel-spectrogram processing.")
+        
+        # 피치 추출 추가 (pyworld 사용)
+        pitch, _ = pw.dio(wav.astype(np.float64), self.sampling_rate, frame_period=1000 * 256 / self.sampling_rate)
+        pitch = pw.stonemask(wav.astype(np.float64), pitch, _, self.sampling_rate)
+        print(f"Pitch extracted for {wav_path}.")
         
         # Generate mel spectrogram
         mel_spectrogram = melspectrogram(
@@ -41,41 +47,79 @@ class Preprocessor:
         energy = np.sum(mel_spectrogram, axis=0)
         print(f"Energy calculated for {wav_path}.")
         
-        # 멜 스펙트로그램과 에너지를 파일로 저장
+        # 멜 스펙트로그램, 에너지, 피치 데이터를 저장할 경로 지정
         mel_save_path = os.path.join(self.preprocessed_dir, "mel", f"{os.path.basename(wav_path).split('.')[0]}.npy")
         energy_save_path = os.path.join(self.preprocessed_dir, "energy", f"{os.path.basename(wav_path).split('.')[0]}.npy")
+        pitch_save_path = os.path.join(self.preprocessed_dir, "pitch", f"{os.path.basename(wav_path).split('.')[0]}.npy")
         
         # 저장할 디렉토리가 없으면 생성
         os.makedirs(os.path.dirname(mel_save_path), exist_ok=True)
         os.makedirs(os.path.dirname(energy_save_path), exist_ok=True)
+        os.makedirs(os.path.dirname(pitch_save_path), exist_ok=True)
 
-        # 멜 스펙트로그램과 에너지 저장
+        # 멜 스펙트로그램, 에너지, 피치 저장
         np.save(mel_save_path, mel_spectrogram)
         np.save(energy_save_path, energy)
-        print(f"Mel spectrogram and energy saved for {wav_path}")
+        np.save(pitch_save_path, pitch)
+        print(f"Mel spectrogram, energy, and pitch saved for {wav_path}")
         
-        return mel_spectrogram, energy
+        return mel_spectrogram, energy, pitch
 
+    def split_data(self, filelist, val_size):
+        """훈련 데이터와 검증 데이터를 분리합니다."""
+        random.shuffle(filelist)
+        val_count = int(len(filelist) * (val_size / 100))
+        train_data = filelist[val_count:]
+        val_data = filelist[:val_count]
+        return train_data, val_data
+
+    def save_to_file(self, data, filename):
+        """훈련 데이터나 검증 데이터를 파일로 저장합니다."""
+        with open(filename, "w", encoding="utf-8") as f:
+            for line in data:
+                f.write(line + "\n")
 
     def build_from_path(self):
+        all_pitches = []
+        all_energies = []
+
         # filelists 내의 파일들을 직접 가져옴
         with open(self.config["data"]["training_files"], "r", encoding="utf-8") as f:
             lines = f.readlines()
 
+        processed_lines = []
         for line in lines:
             wav_path, transcript = line.strip().split("|")
             wav_path = os.path.join(self.in_dir, wav_path)
 
             if os.path.exists(wav_path):
-                # 음성 파일 처리 중 로그 출력
                 print(f"Processing {wav_path} with transcript: {transcript}")
-                # 멜 스펙트로그램 생성
-                mel_output, energy = self.process_audio(wav_path)
+                mel_output, energy, pitch = self.process_audio(wav_path)
                 
-                # 추가적으로 전처리한 데이터를 저장하는 코드도 로그로 출력
-                print(f"Saving mel spectrogram for {wav_path}")
+                all_pitches.extend(pitch)
+                all_energies.extend(energy)
+                # 처리된 데이터 저장
+                speaker_id = "speaker_1"
+                processed_lines.append(f"{wav_path}|{speaker_id}|{transcript}|{transcript}")
             else:
                 print(f"File {wav_path} not found")
+
+        # 피치와 에너지의 평균 및 표준편차 계산
+        stats = {
+            "pitch": {
+                "mean": float(np.mean(all_pitches)) if all_pitches else 0.0,  # float()으로 변환
+                "std": float(np.std(all_pitches)) if all_pitches else 0.0,   # float()으로 변환
+            },
+            "energy": {
+                "mean": float(np.mean(all_energies)),  # float()으로 변환
+                "std": float(np.std(all_energies)),   # float()으로 변환
+            },
+        }
+
+        # stats.json 파일로 저장
+        with open(os.path.join(self.preprocessed_dir, "stats.json"), "w") as f:
+            json.dump(stats, f)
+        print("Stats.json file created successfully!")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
