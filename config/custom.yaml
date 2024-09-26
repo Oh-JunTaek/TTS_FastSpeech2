@@ -1,0 +1,56 @@
+# 경로 설정
+path:
+  raw_path: "dataset/wavs"       # 원본 음성 파일이 있는 경로
+  preprocessed_path: "dataset/preprocessed"  # 전처리된 파일을 저장할 경로
+  mel_path: "dataset/mels"       # 멜 스펙트로그램 저장 경로
+  alignment_path: "dataset/alignments"  # 정렬 파일 저장 경로
+  pitch_path: "dataset/pitch"    # 피치 정보 저장 경로
+  energy_path: "dataset/energy"  # 에너지 정보 저장 경로
+  duration_path: "dataset/duration"  # 지속 시간 정보 저장 경로
+
+# 전처리 설정
+preprocessing:
+  val_size: 10  # 검증 데이터셋의 크기(퍼센트 단위, 10%)
+  text_cleaners: ["korean_cleaners"]  # 텍스트 클리너 설정
+
+  # 오디오 설정
+  audio:
+    sampling_rate: 22050  # 샘플링 레이트
+    mel_fmin: 0.0
+    mel_fmax: 8000.0
+
+  # STFT 설정
+  stft:
+    filter_length: 1024
+    hop_length: 256
+    win_length: 1024
+
+  # 피치 설정
+  pitch:
+    feature: "phoneme_level"  # 피치 추출 수준 (phoneme_level 또는 frame_level)
+    min: 80.0
+    max: 400.0
+    normalization: True  # 피치 정보의 정규화 여부
+
+  # 에너지 설정
+  energy:
+    feature: "phoneme_level"  # 에너지 추출 수준 (phoneme_level 또는 frame_level)
+    normalization: True
+
+  # 멜 스펙트로그램 설정
+  mel:
+    n_mel_channels: 80  # 멜 밴드 수
+    mel_fmin: 0.0  # 멜 필터의 최소 주파수
+    mel_fmax: 8000.0  # 멜 필터의 최대 주파수
+
+# 데이터 설정
+data:
+  training_files: "filelists/custom_train.txt"
+  validation_files: "filelists/custom_val.txt"
+
+# 학습 설정
+train:
+  epochs: 500
+  batch_size: 16
+  learning_rate: 0.0001
+  checkpoint_path: "checkpoints/custom"

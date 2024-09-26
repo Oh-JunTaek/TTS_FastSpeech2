@@ -1,0 +1,1 @@
+dataset/wavs/00001.wav|안녕하세요.
